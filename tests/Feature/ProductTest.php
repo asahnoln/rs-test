@@ -15,14 +15,16 @@ it('has product list', function () {
     $resp = getJson('/products');
 
     $resp->assertOk();
-    $resp->assertJson(['data' =>
+    $resp->assertExactJson(['data' =>
         [
             [
+                'id' => 1,
                 'name' => 'Test name',
                 'price' => 100,
                 'quantity' => 2,
             ],
             [
+                'id' => 2,
                 'name' => 'Wow!',
                 'price' => 200,
                 'quantity' => 3,
@@ -40,6 +42,8 @@ it('filters by properties', function () {
     $smallProducts = Product::factory(4)->hasAttached($size, ['value' => 'small'])->create();
 
     $resp = getJson('/products?properties[color]=black&properties[size]=large');
+    $resp->assertOk();
 
-    $resp->assertJsonCount(4);
+    $resp->assertJsonPath('data.0.name', $blackProducts[0]->name);
+    $resp->assertJsonPath('data.2.name', $largeProducts[1]->name);
 });
