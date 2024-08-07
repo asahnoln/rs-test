@@ -41,9 +41,21 @@ it('filters by properties', function () {
     $largeProducts = Product::factory(3)->hasAttached($size, ['value' => 'large'])->create();
     $smallProducts = Product::factory(4)->hasAttached($size, ['value' => 'small'])->create();
 
-    $resp = getJson('/products?properties[color]=black&properties[size]=large');
+    $resp = getJson('/products?properties[color][]=black&properties[color][]=white&properties[size][]=large');
     $resp->assertOk();
 
     $resp->assertJsonPath('data.0.name', $blackProducts[0]->name);
-    $resp->assertJsonPath('data.2.name', $largeProducts[1]->name);
+    $resp->assertJsonPath('data.2.name', $whiteProducts[1]->name);
+    $resp->assertJsonPath('data.4.name', $largeProducts[1]->name);
+});
+
+todo('validation of properties and values');
+
+todo('default sort by create time?');
+
+it('product list paginated by 40', function () {
+    Product::factory(100)->create();
+    $resp = getJson('/products');
+    $resp->assertOk();
+    $resp->assertJsonCount(40, 'data');
 });

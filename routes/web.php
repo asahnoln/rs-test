@@ -8,12 +8,15 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+// TODO: Controller
 Route::get('/products', function () {
     $result = [];
+    // TODO: Validation
     $props = request()->input('properties');
     if (!$props) {
         $result = Product::all();
     } else {
+        // TODO: Optimize (all props and their values at once)
         foreach (request()->input('properties', []) as $key => $value) {
             $products = Product::select('products.*')
                 ->join('product_property', 'products.id', '=', 'product_property.product_id')
