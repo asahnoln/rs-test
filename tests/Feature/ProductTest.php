@@ -4,6 +4,8 @@ use App\Models\Product;
 use App\Models\Property;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
+use Illuminate\Support\Benchmark;
+
 use function Pest\Laravel\getJson;
 
 uses(RefreshDatabase::class);
@@ -81,3 +83,27 @@ it('product list paginated by 40', function () {
     $resp->assertOk();
     $resp->assertJsonCount(40, 'data');
 });
+
+test('benchmark', function () {
+    $props = Property::factory(100)->create();
+    $vals = range('a', 'z');
+    foreach ($vals as $k => $v) {
+        Product::factory(500)
+            ->hasAttached($props[$k], ['value' => $v])
+            ->create();
+    }
+
+    $propstring = [];
+    $withAllProps = Product::factory(5000);
+    foreach ($vals as $k => $v) {
+        $propstring[] = "properties[{$props[$k]->name}][]={$v}";
+        $withAllProps->hasAttached($props[$k], ['value' => $vals[$k]]);
+    }
+    $withAllProps->create();
+
+    list($resp, $time) = Benchmark::value(
+        fn () => getJson('/products?' . implode('&', $propstring)),
+    );
+
+    expect($time)->toBeLessThan(10);
+})->skip(env('BENCHMARK') === null);
