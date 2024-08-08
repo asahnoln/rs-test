@@ -7,14 +7,20 @@ use Illuminate\Http\Request;
 
 class ProductController extends Controller
 {
+    public const PRODUCTS_PER_PAGE = 40;
+
     public function list(Request $request)
     {
-        $result = [];
-        // TODO: Validation
-        $props = $request->input('properties');
+        $data = $request->validate([
+            'properties' => ['array'],
+            'properties.*' => ['array'],
+            'properties.*.*' => ['string'],
+        ]);
+
+        $props = $data['properties'] ?? null;
+
         if (!$props) {
-            $result = Product::paginate(40);
-            return $result;
+            return Product::paginate(self::PRODUCTS_PER_PAGE);
         }
 
         $products = Product::select('products.*')
@@ -30,11 +36,12 @@ class ProductController extends Controller
                 '=',
                 'properties.id'
             );
+
         foreach ($props as $key => $values) {
             $products->orWhere('properties.name', '=', $key)
-            ->whereIn('product_property.value', $values);
+                ->whereIn('product_property.value', $values);
         }
 
-        return $products->paginate(40);
+        return $products->paginate(self::PRODUCTS_PER_PAGE);
     }
 }

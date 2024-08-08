@@ -53,9 +53,16 @@ it('filters by properties', function () {
     $resp->assertJsonPath('data.4.name', $largeProducts[1]->name);
 });
 
-todo('validation of properties and values');
+it('validation of properties', function () {
+    $resp = getJson('/products?properties=false');
+    $resp->assertUnprocessable();
 
-todo('default sort by create time?');
+    $resp = getJson('/products?properties[]=false');
+    $resp->assertUnprocessable();
+
+    $resp = getJson('/products?properties[][]=');
+    $resp->assertUnprocessable();
+});
 
 it('product list paginated by 40', function () {
     Product::factory(100)->create();
