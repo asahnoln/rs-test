@@ -21,9 +21,7 @@ php artisan test
 BENCHMARK=1 php artisan test
 ```
 
-## Might be of interest
+## Files to inspect
 
-- `./tests/Feature/ProductTest.php`
-- `./app/Http/Controllers/ProductController.php`
-- `./app/Models/Product.php`
-- `./app/Models/Property.php`
+- [Product tests](./tests/Feature/ProductTest.php)
+- [Controller](./app/Http/Controllers/ProductController.php)
