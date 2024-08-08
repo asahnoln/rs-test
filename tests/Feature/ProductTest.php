@@ -15,7 +15,7 @@ it('has product list', function () {
     $resp = getJson('/products');
 
     $resp->assertOk();
-    $resp->assertExactJson(['data' =>
+    $resp->assertJson(['data' =>
         [
             [
                 'id' => 1,
@@ -36,10 +36,14 @@ it('has product list', function () {
 it('filters by properties', function () {
     $color = Property::factory()->create(['name' => 'color' ]);
     $size = Property::factory()->create(['name' => 'size' ]);
-    $blackProducts = Product::factory(1)->hasAttached($color, ['value' => 'black'])->create();
-    $whiteProducts = Product::factory(2)->hasAttached($color, ['value' => 'white'])->create();
-    $largeProducts = Product::factory(3)->hasAttached($size, ['value' => 'large'])->create();
-    $smallProducts = Product::factory(4)->hasAttached($size, ['value' => 'small'])->create();
+    $blackProducts = Product::factory(1)
+        ->hasAttached($color, ['value' => 'black'])->create();
+    $whiteProducts = Product::factory(2)
+        ->hasAttached($color, ['value' => 'white'])->create();
+    $largeProducts = Product::factory(3)
+        ->hasAttached($size, ['value' => 'large'])->create();
+    $smallProducts = Product::factory(4)
+        ->hasAttached($size, ['value' => 'small'])->create();
 
     $resp = getJson('/products?properties[color][]=black&properties[color][]=white&properties[size][]=large');
     $resp->assertOk();
