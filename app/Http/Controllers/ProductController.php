@@ -3,13 +3,13 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class ProductController extends Controller
 {
-    public const PRODUCTS_PER_PAGE = 40;
-
-    public function list(Request $request)
+    public function list(Request $request): LengthAwarePaginator
     {
         $data = $request->validate([
             'properties' => ['array'],
@@ -20,28 +20,20 @@ class ProductController extends Controller
         $props = $data['properties'] ?? null;
 
         if (!$props) {
-            return Product::paginate(self::PRODUCTS_PER_PAGE);
+            return Product::paginate();
         }
 
-        $products = Product::select('products.*')
-            ->join(
-                'product_property',
-                'products.id',
-                '=',
-                'product_property.product_id'
-            )
-            ->join(
-                'properties',
-                'product_property.property_id',
-                '=',
-                'properties.id'
-            );
+        $products = Product::where(function (Builder $query) use ($props) {
+            foreach ($props as $name => $values) {
+                foreach ($values as $value) {
+                    $query->whereHas('properties', function (Builder $query) use ($name, $value) {
+                        $query->where('properties.name', $name)
+                            ->where('product_property.value', $value);
+                    });
+                }
+            }
+        });
 
-        foreach ($props as $key => $values) {
-            $products->orWhere('properties.name', '=', $key)
-                ->whereIn('product_property.value', $values);
-        }
-
-        return $products->paginate(self::PRODUCTS_PER_PAGE);
+        return $products->paginate();
     }
 }

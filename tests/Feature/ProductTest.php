@@ -33,24 +33,35 @@ it('has product list', function () {
     ]);
 });
 
-it('filters by properties', function () {
-    $color = Property::factory()->create(['name' => 'color' ]);
+it('filters by all properties', function () {
+    $color = Property::factory()->create(['name' => 'color']);
     $size = Property::factory()->create(['name' => 'size' ]);
-    $blackProducts = Product::factory(1)
-        ->hasAttached($color, ['value' => 'black'])->create();
-    $whiteProducts = Product::factory(2)
-        ->hasAttached($color, ['value' => 'white'])->create();
-    $largeProducts = Product::factory(3)
-        ->hasAttached($size, ['value' => 'large'])->create();
-    $smallProducts = Product::factory(4)
-        ->hasAttached($size, ['value' => 'small'])->create();
+
+    // These should stay
+    $allProps = Product::factory(5)
+        ->hasAttached($color, ['value' => 'black'])
+        ->hasAttached($color, ['value' => 'white'])
+        ->hasAttached($size, ['value' => 'large'])
+        ->create();
+
+    // These should be filtered out
+    $partialProps = Product::factory(4)
+        ->hasAttached($color, ['value' => 'white'])
+        ->hasAttached($size, ['value' => 'large'])
+        ->create();
+    $partialProps2 = Product::factory(3)
+        ->hasAttached($color, ['value' => 'black'])
+        ->hasAttached($size, ['value' => 'small'])
+        ->create();
+    $noProps = Product::factory(2)->create();
 
     $resp = getJson('/products?properties[color][]=black&properties[color][]=white&properties[size][]=large');
     $resp->assertOk();
 
-    $resp->assertJsonPath('data.0.name', $blackProducts[0]->name);
-    $resp->assertJsonPath('data.2.name', $whiteProducts[1]->name);
-    $resp->assertJsonPath('data.4.name', $largeProducts[1]->name);
+    $resp->assertJsonPath('data.0.name', $allProps[0]->name);
+    $resp->assertJsonPath('data.2.name', $allProps[2]->name);
+    $resp->assertJsonPath('data.4.name', $allProps[4]->name);
+    $resp->assertJsonCount(5, 'data');
 });
 
 it('validation of properties', function () {
